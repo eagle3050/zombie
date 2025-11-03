@@ -1,0 +1,96 @@
+[gd_scene load_steps=10 format=3 uid="uid://dtj200hm0fbde"]
+
+[ext_resource type="Script" uid="uid://b5ib51m1obpq1" path="res://zombie.gd" id="1_roy8y"]
+[ext_resource type="Texture2D" uid="uid://bl3ria8aq812s" path="res://kenney_top-down-shooter/PNG/Zombie 1/zoimbie1_hold.png" id="1_uiaus"]
+[ext_resource type="Shader" uid="uid://c1srx5vlfut7k" path="res://zombie_flash.gdshader" id="3_jmu02"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eseir"]
+shader = ExtResource("3_jmu02")
+shader_parameter/silhouette_color = Color(1, 1, 1, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_roy8y"]
+radius = 11.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uiaus"]
+radius = 20.09975
+
+[sub_resource type="Animation" id="Animation_eseir"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_jmu02"]
+resource_name = "die"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(0.4862745, 0.02745098, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_eseir"]
+_data = {
+&"RESET": SubResource("Animation_eseir"),
+&"die": SubResource("Animation_jmu02")
+}
+
+[node name="Zombie" type="CharacterBody2D" groups=["enemy"]]
+z_index = 1
+motion_mode = 1
+wall_min_slide_angle = 0.0
+script = ExtResource("1_roy8y")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_uiaus")
+
+[node name="DamagedSprite" type="Sprite2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_eseir")
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("1_uiaus")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_roy8y")
+
+[node name="Detect" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Detect"]
+shape = SubResource("CircleShape2D_uiaus")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+navigation_layers = 15
+simplify_path = true
+avoidance_enabled = true
+avoidance_layers = 15
+avoidance_mask = 15
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true
+
+[node name="Death" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_eseir")
+}
+
+[connection signal="area_entered" from="Detect" to="." method="_on_bullet_detect_area_entered"]
+[connection signal="body_entered" from="Detect" to="." method="_on_detect_body_entered"]
+[connection signal="body_exited" from="Detect" to="." method="_on_detect_body_exited"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="animation_finished" from="Death" to="." method="_on_death_animation_finished"]
